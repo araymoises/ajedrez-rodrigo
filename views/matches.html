@@ -18,7 +18,7 @@
                 <a class="nav-link" href="http://localhost:3000/matches" style="color: #f5f5f5">Partidos</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:3000/" style="color: #f5f5f5">Salir</a>
+                <a id="signout-button" class="nav-link" href="#" style="color: #f5f5f5">Salir</a>
             </li>
         </ul>
     </div>
@@ -58,8 +58,30 @@
 
     <script>
         $( document ).ready(function() {
-            console.log('Prueba: ', localStorage.getItem('test'));
-    
+            const idUser = localStorage.getItem('idUser');
+            const userName = localStorage.getItem('userName');
+            const userLevel = localStorage.getItem('userLevel');
+            const userType = localStorage.getItem('userType');
+
+            console.log('userType', userType);
+
+            // If user is not logged, redirect to login.
+            if (userType == 'null') {
+                window.location.replace("http://localhost:3000/login");
+                return;
+            }
+
+            // When click exit.
+            $("#signout-button").on( "click", function() {
+                // Delete global variables.
+                localStorage.setItem('idUser', null);
+                localStorage.setItem('userName', null);
+                localStorage.setItem('userLevel', null);
+                localStorage.setItem('userType', null);
+
+                // Redirect to login.
+                window.location.href = "http://localhost:3000/login";
+            });
         });
         
     

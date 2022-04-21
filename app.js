@@ -20,11 +20,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/static', express.static('public'))
 // API Routing
 app.use('/api', api);
 
 // Views Routing
+app.use('/signup', function(req, res, next) {
+  res.render('signup');
+});
 app.use('/matches', function(req, res, next) {
   res.render('matches');
 });

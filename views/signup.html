@@ -13,27 +13,47 @@
         <div>
             <img src="http://localhost:3000/static/images/logo.png" style="width: 150px; margin-bottom: 20px;" alt="">
             <br>
-            <h1 class="h3 mb-3 fw-normal">Ajedrez</h1>
+            <h1 class="h3 mb-3 fw-normal">Registrarse</h1>
         
             <div class="form-floating">
-                <input type="email" class="form-control" id="username" placeholder="Usuario">
+                <input type="name" class="form-control" id="name" placeholder="Usuario">
+                <label for="username">Nombre</label>
+            </div>
+            <br>
+            <div class="form-floating">
+                <span for="username">Tipo de usuario</span>
+                <select id="user-type" class="form-select" aria-label="Tipo de usuario">
+                    <option value="normal" selected>Usuario normal</option>
+                    <option value="admin">Usuario administrador</option>
+                </select>
+            </div>
+            <br>
+            <div class="form-floating">
+                <span for="username">Nivel de jugador</span>
+                <select id="user-level" class="form-select" aria-label="Nivel de jugador">
+                    <option value="Novato" selected>Novato</option>
+                    <option value="Experto">Experto</option>
+                </select>
+            </div>
+            <br>
+            <div class="form-floating">
+                <input type="username" class="form-control" id="username" placeholder="Usuario">
                 <label for="username">Usuario</label>
             </div>
+            <br>
             <div class="form-floating">
                 <input type="password" class="form-control" id="password" placeholder="Contraseña">
                 <label for="password">Contraseña</label>
             </div>
 
-            <br>
+            <hr>
 
             <!-- <div class="checkbox mb-3">
                 <label>
                 <input type="checkbox" value="remember-me"> Remember me
                 </label>
             </div> -->
-            <button id="login-button" class="w-100 btn btn-lg btn-primary">Acceder</button>
-            <hr>
-            <button id="signup-button" class="w-100 btn btn-lg btn-secondary" style="margin-bottom: 10px;">Registrarse</button>
+            <button id="signup-confirm-button" class="w-100 btn btn-lg btn-primary">Guardar</button>
         </div>
     </main>
 
@@ -44,30 +64,22 @@
                 window.location.replace("http://localhost:3000/users");
                 return;
             }
-            $("#login-button").on( "click", function() {
+            $("#signup-confirm-button").on( "click", function() {
                 $.ajax({
-                    type: "POST",
-                    url: 'http://localhost:3000/api/login',
-                    data: {
-                        username: $("#username").val(),
-                        password: $("#password").val()
-                    },
-                    success: function (data) {
-                        console.log(data);
-                        if (data.length) {
-                            localStorage.setItem('idUser', data[0].id);
-                            localStorage.setItem('userName', data[0].name);
-                            localStorage.setItem('userLevel', data[0].level);
-                            localStorage.setItem('userType', data[0].type);
-                            window.location.href = "http://localhost:3000/users";
-                        } else {
-                            alert('Usuario no encontrado.')
-                        }
-                    },
-                });
+                type: "POST",
+                url: 'http://localhost:3000/api/signup',
+                data: {
+                    name: $("#name").val(),
+                    userType: $("#user-type").val(),
+                    userLevel: $("#user-level").val(),
+                    username: $("#username").val(),
+                    password: $("#password").val(),
+                },
+                success: function (data) {
+                    console.log(data);
+                    window.location.href = "http://localhost:3000/login";
+                },
             });
-            $("#signup-button").on( "click", function() {
-                window.location.href = "http://localhost:3000/signup";
             });
     
         });

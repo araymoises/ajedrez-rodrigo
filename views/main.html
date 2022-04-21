@@ -18,7 +18,7 @@
                 <a class="nav-link" href="http://localhost:3000/matches" style="color: #f5f5f5">Partidos</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:3000/" style="color: #f5f5f5">Salir</a>
+                <a id="signout-button" class="nav-link" href="#" style="color: #f5f5f5">Salir</a>
             </li>
         </ul>
     </div>
@@ -70,29 +70,50 @@
 
     <script>
         $( document ).ready(function() {
+            const idUser = localStorage.getItem('idUser');
             const userName = localStorage.getItem('userName');
             const userLevel = localStorage.getItem('userLevel');
             const userType = localStorage.getItem('userType');
+
             console.log('userType', userType);
+
+            // If user is not logged, redirect to login.
+            if (userType == 'null') {
+                window.location.replace("http://localhost:3000/login");
+                return;
+            }
+
+            // If user is admin, can edit and delete other users.
             if (userType === "admin") {
                 $(".edit-user-button").css("display", "contents");
                 $(".delete-user-button").css("display", "contents");
             }
-            $.ajax({
-                type: "GET",
-                dataType: 'json',
-                contentType: 'application/json',
-                url: 'http://localhost:3000/api/users',
-                data: {
-                    username: 'rceron',
-                    password: '12345'
-                },
-                success: function (data) {
-                    localStorage.setItem('test', 'Es una prueba.');
-                    console.log(data);
-                },
+            // $.ajax({
+            //     type: "GET",
+            //     dataType: 'json',
+            //     contentType: 'application/json',
+            //     url: 'http://localhost:3000/api/users',
+            //     data: {
+            //         username: 'rceron',
+            //         password: '12345'
+            //     },
+            //     success: function (data) {
+            //         localStorage.setItem('test', 'Es una prueba.');
+            //         console.log(data);
+            //     },
+            // });
+
+            // When click exit.
+            $("#signout-button").on( "click", function() {
+                // Delete global variables.
+                localStorage.setItem('idUser', null);
+                localStorage.setItem('userName', null);
+                localStorage.setItem('userLevel', null);
+                localStorage.setItem('userType', null);
+
+                // Redirect to login.
+                window.location.href = "http://localhost:3000/login";
             });
-    
         });
         
     
