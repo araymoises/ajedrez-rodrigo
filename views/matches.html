@@ -7,6 +7,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     </head>
 <body style="justify-content: center; display: block; align-items: center; padding-bottom: 40px; background-color: rgb(245, 245, 245); text-align: center !important;">
     <div style="background-color: #1d1d1d;">
@@ -36,33 +37,39 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Roberto Hernandez</td>
-                    <td>2022-03-10 20:30</td>
-                    <td>Ganador: Rodrigo Ceron</td>
-                  </tr>
-                  <tr>
-                    <td>Andrez Parra</td>
-                    <td>2022-04-19 12:00</td>
-                    <td><a href="#">¿Ganador?</a></td>
-                  </tr>
-                  <tr>
-                    <td>Roberto Hernandez</td>
-                    <td>2022-05-29 15:00</td>
-                    <td>Partido no jugado</td>
-                  </tr>
                 </tbody>
               </table>
+        </div>
+
+        <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="resultModalLabel">Resultado</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <h4>¿Ganaste el partido?</h4>
+              </div>
+              <div class="modal-footer">
+                  <button id="confirm-lose-button" type="button" class="btn btn-secondary">No</button>
+                  <button id="confirm-win-button" type="button" class="btn btn-primary">Sí</button>
+              </div>
+              </div>
+          </div>
         </div>
     </div>
 
     <script>
-        $( document ).ready(function() {
+        $( document ).ready(async function() {
             const idUser = localStorage.getItem('idUser');
             const userName = localStorage.getItem('userName');
             const userLevel = localStorage.getItem('userLevel');
             const userType = localStorage.getItem('userType');
+            var modalChallengeId = 0;
+            var modalOponentName = "";
 
+            await getChallengesByUser(idUser);
             console.log('userType', userType);
 
             // If user is not logged, redirect to login.
@@ -82,8 +89,120 @@
                 // Redirect to login.
                 window.location.href = "http://localhost:3000/login";
             });
+
+            // Choose the winner of the match.
+            $(".select-winner-button").on( "click", function() {
+              modalChallengeId = $(this).parent().parent().attr('id').split("-")[1];
+              modalOponentName = $(this).parent().parent().find("#oponent-name").text();
+
+              const resultModal = new bootstrap.Modal($('#resultModal'))
+              resultModal.show();
+            });
+
+            // Confirm you win the match.
+            $("#confirm-win-button").on( "click", function() {
+              saveWinner(modalChallengeId, userName)
+            });
+
+            // Confirm you lose the match.
+            $("#confirm-lose-button").on( "click", function() {
+              saveWinner(modalChallengeId, modalOponentName)
+            });
+
+            // When the match is going on.
+            $(".play-button").on( "click", function() {
+              const challengeid = $(this).parent().parent().attr('id').split("-")[1];
+              console.log('challengeid',challengeid);
+              alert('Partido en progreso...')
+
+              $.ajax({
+                  type: "PUT",
+                  url: 'http://localhost:3000/api/challenge-playing',
+                  data: {
+                    challengeId: challengeid
+                  },
+                  success: function (res) {
+                      console.log(res);
+                      if (res.success) {
+                        window.location.reload();
+                      }else {
+                        alert("Ocurrió un error.")
+                      }
+                  },
+              });
+            });
         });
         
+        // Getting users from database.
+        async function getChallengesByUser(idUser) {
+            await $.ajax({
+                type: "POST",
+                url: 'http://localhost:3000/api/challenges',
+                data: {
+                    idUser: idUser
+                },
+                success: function (res) {
+                    console.log(res);
+                    const dateNow = new Date().getTime();
+                    var html = "";
+                    var oponentName = "";
+                    var oponentId = 0;
+                    var challengeDate = 0;
+                    res.forEach(challenge => {
+                      challengeDate = new Date(challenge.challenge_date).getTime();
+                      if (challenge.user1_id == idUser) {
+                        oponentName = challenge.user2_name;
+                        oponentId = challenge.user2_id;
+                      } else {
+                        oponentName = challenge.user1_name;
+                        oponentId = challenge.user1_id;
+                      }
+                        // Making the table structure with the challenges data.
+                        html += `
+                        <tr id="challenge-${challenge.id}-oponent-${oponentId}">
+                          <td id="oponent-name">${oponentName}</td>
+                          <td>${challenge.challenge_date.split("T")[0]}</td>
+                        `;
+
+                        if (challenge.winner_name) {
+                            html += `<td>Ganador: ${challenge.winner_name}</td>`;
+                        } else if ((challengeDate <= dateNow) && !challenge.is_played){
+                            html += `<td><a class="play-button" href="#">Jugar</a></td>`;
+                        } else if (challenge.is_played && !challenge.winner_name) {
+                          html += `<td><a class="select-winner-button" href="#">¿Quién Ganó?</a></td>`;
+                        } else if ((challengeDate > dateNow) && !challenge.is_played) {
+                          html += `<td>-</td>`;
+                        }
+
+                        html += `
+                            </tr>
+                        `;
+                    });
+
+                    // Updating the table.
+                    $(".table").find("tbody").html(html);
+                },
+            });
+        }
+
+        function saveWinner(modalChallengeId, winnerName) {
+          $.ajax({
+                  type: "PUT",
+                  url: 'http://localhost:3000/api/challenge-winner',
+                  data: {
+                    challengeId: modalChallengeId,
+                    winnerName: winnerName
+                  },
+                  success: function (res) {
+                      console.log(res);
+                      if (res.success) {
+                        window.location.reload();
+                      }else {
+                        alert("Ocurrió un error.")
+                      }
+                  },
+              });
+        }
     
     </script>
 </body>
