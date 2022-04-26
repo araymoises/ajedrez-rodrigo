@@ -87,13 +87,21 @@ router.put('/challenge-playing', async function(req, res, next) {
 
 // Choosing the winner of the match.
 router.put('/challenge-winner', async function(req, res, next) {
-  console.log('req.body.challengeId', req.body.challengeId);
-  console.log('req.body.winnerName', req.body.winnerName);
   await db.query("UPDATE ajedrez.challenges SET winner_name = $1 WHERE id = $2", [req.body.winnerName, req.body.challengeId]);
   res.send({
     success: true,
     content: null,
     message: 'Ganador guardado.'
+  });
+});
+
+// Choosing the winner of the match.
+router.put('/user-edit', async function(req, res, next) {
+  await db.query("UPDATE ajedrez.users SET name = $1, level = $2, type = $3, username = $4 WHERE id = $5", [req.body.userName, req.body.userLevel, req.body.userType, req.body.userUsername, req.body.userId]);
+  res.send({
+    success: true,
+    content: null,
+    message: 'Usuario editado.'
   });
 });
 

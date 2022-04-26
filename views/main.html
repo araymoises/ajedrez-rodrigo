@@ -7,7 +7,6 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     </head>
 <body style="justify-content: center; display: block; align-items: center; padding-bottom: 40px; background-color: rgb(245, 245, 245); text-align: center !important;">
     <style>
@@ -27,6 +26,13 @@
             </li>
             <li class="nav-item">
                 <a id="signout-button" class="nav-link" href="#" style="color: #f5f5f5">Salir</a>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" style="color: #5a5a5a">|</span>
+            </li>
+    
+            <li class="nav-item">
+                <span class="nav-link" style="color: #5a5a5a"><span id="nav-name"></span> - <span id="nav-level"></span> - <span id="nav-type"></span></span>
             </li>
         </ul>
     </div>
@@ -48,7 +54,6 @@
               </table>
         </div>
 
-            
         <div class="modal fade" id="challengeModal" tabindex="-1" aria-labelledby="challengeModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -69,17 +74,51 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Modificando usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <input type="hidden" class="form-control" id="id-user">
+                        <input type="text" class="form-control" id="name" placeholder="Usuario">
+                        <label for="username">Nombre</label>
+                    </div>
+                    <br>
+                    <div class="form-floating">
+                        <span for="username">Tipo de usuario</span>
+                        <select id="user-type" class="form-select" aria-label="Tipo de usuario">
+                            <option value="normal" selected>Usuario normal</option>
+                            <option value="admin">Usuario administrador</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="form-floating">
+                        <span for="username">Nivel de jugador</span>
+                        <select id="user-level" class="form-select" aria-label="Nivel de jugador">
+                            <option value="Novato" selected>Novato</option>
+                            <option value="Experto">Experto</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="username" placeholder="Usuario">
+                        <label for="username">Usuario</label>
+                    </div>
+                    <br>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button id="confirm-edit-button" type="button" class="btn btn-primary">Editar</button>
+                </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <script type="text/x-handlebars-template" id="handlebars-script">
-        <li class="nav-item">
-            <span class="nav-link" style="color: #5a5a5a">|</span>
-        </li>
-
-        <li class="nav-item">
-            <span class="nav-link" style="color: #f5f5f5">{{ name }} - Experto - admin</span>
-        </li>
-    </script>
 
     <script>
         $( document ).ready(async function() {
@@ -89,13 +128,17 @@
             const userLevel = localStorage.getItem('userLevel');
             const userType = localStorage.getItem('userType');
 
-            var template = document.getElementById("handlebars-script").innerHTML;
-            var compile = Handlebars.compile(template);
-            var compileHTML = compile({name: 'Siro'});
-            // document.getElementById("nav").innerHTML += compileHTML;
+            $("#nav-name").text(userName);
+            $("#nav-level").text(userLevel);
+            $("#nav-type").text(userType);
+
             var idUserOponent = "";
+
+            var idUserToEdit = "";
+            var nameUserToEdit = "";
+            var levelUserToEdit = "";
+            var typeUserToEdit = "";
             
-            console.log('idUser', idUser);
             await getUsers(idUser, userLevel);
 
             // If user is not logged, redirect to login.
@@ -130,10 +173,52 @@
                 challengeModal.show()
             });
 
+            // When click exit.
+            $("#confirm-edit-button").on( "click", function() {
+                $.ajax({
+                  type: "PUT",
+                  url: 'http://localhost:3000/api/user-edit',
+                  data: {
+                    userId: $("#id-user").val(),
+                    userUsername: $("#username").val(),
+                    userType: $("#user-type").val(),
+                    userLevel: $("#user-level").val(),
+                    userName: $("#name").val(),
+                  },
+                  success: function (res) {
+                      if (res.success) {
+                        window.location.reload();
+                      }else {
+                        alert("Ocurrió un error.")
+                      }
+                  },
+              });
+                
+            });
+
+            // When click edit user.
+            $(".edit-user-button").on( "click", function() {
+                const rowUser = $(this).parent().parent();
+                idUserToEdit = rowUser.attr('id').split("-")[1];
+                nameUserToEdit = rowUser.find(".user-name").text();
+                usernameUserToEdit = rowUser.find(".user-username").val();
+                levelUserToEdit = rowUser.find(".user-level").text();
+                typeUserToEdit = rowUser.find(".user-type").val();
+
+                $("#id-user").val(idUserToEdit);
+                $("#username").val(usernameUserToEdit);
+                $("#user-type").val(typeUserToEdit).change();
+                $("#user-level").val(levelUserToEdit).change();
+                $("#name").val(nameUserToEdit);
+
+                // Opening edit user modal.
+                const editUserModal = new bootstrap.Modal($('#editUserModal'))
+                editUserModal.show()
+            });
+
             // When confirm the chanllenge in the modal.
             $("#confirm-challenge-button").on( "click", function() {
                 const challengeDate = $("#modal-challenge-date-input").val();
-                console.log('aaaaaaaaaaaaaaaaaaaokokokx', challengeDate);
                 
                 $.ajax({
                     type: "POST",
@@ -144,7 +229,6 @@
                         challengeDate
                     },
                     success: function (res) {
-                        console.log('challenged', res);
                         if (res.success) {
                             alert(res.message);
                             window.location.reload();
@@ -168,7 +252,6 @@
                             idUser: userToDelete
                         },
                         success: function (res) {
-                            console.log(res);
                             if (res.success) {
                                 alert(res.message);
                                 window.location.reload();
@@ -188,14 +271,16 @@
                     idUser: idUser
                 },
                 success: function (res) {
-                    console.log(res);
                     var html = "";
                     res.forEach(user => {
                         // Making the table structure with the users data.
                         html += `
                             <tr id="user-${user.id}">
-                                <td>${user.name}</td>
-                                <td>${user.level}</td>
+                                <input class="user-type" type="hidden" value="${user.type}">
+                                <input class="user-username" type="hidden" value="${user.username}">
+                                <input class="user-password" type="hidden" value="${user.password}">
+                                <td class="user-name">${user.name}</td>
+                                <td class="user-level">${user.level}</td>
                                 <td>
                         `;
                         if (user.level == loggedUserLevel) {

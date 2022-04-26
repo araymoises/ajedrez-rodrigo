@@ -7,7 +7,6 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     </head>
 <body style="justify-content: center; display: block; align-items: center; padding-bottom: 40px; background-color: rgb(245, 245, 245); text-align: center !important;">
     <div style="background-color: #1d1d1d;">
@@ -21,6 +20,13 @@
             <li class="nav-item">
                 <a id="signout-button" class="nav-link" href="#" style="color: #f5f5f5">Salir</a>
             </li>
+            <li class="nav-item">
+              <span class="nav-link" style="color: #5a5a5a">|</span>
+          </li>
+  
+          <li class="nav-item">
+              <span class="nav-link" style="color: #5a5a5a"><span id="nav-name"></span> - <span id="nav-level"></span> - <span id="nav-type"></span></span>
+          </li>
         </ul>
     </div>
 
@@ -66,11 +72,15 @@
             const userName = localStorage.getItem('userName');
             const userLevel = localStorage.getItem('userLevel');
             const userType = localStorage.getItem('userType');
+
+            $("#nav-name").text(userName);
+            $("#nav-level").text(userLevel);
+            $("#nav-type").text(userType);
+
             var modalChallengeId = 0;
             var modalOponentName = "";
 
             await getChallengesByUser(idUser);
-            console.log('userType', userType);
 
             // If user is not logged, redirect to login.
             if (userType == 'null') {
@@ -112,7 +122,6 @@
             // When the match is going on.
             $(".play-button").on( "click", function() {
               const challengeid = $(this).parent().parent().attr('id').split("-")[1];
-              console.log('challengeid',challengeid);
               alert('Partido en progreso...')
 
               $.ajax({
@@ -122,7 +131,6 @@
                     challengeId: challengeid
                   },
                   success: function (res) {
-                      console.log(res);
                       if (res.success) {
                         window.location.reload();
                       }else {
@@ -142,7 +150,6 @@
                     idUser: idUser
                 },
                 success: function (res) {
-                    console.log(res);
                     const dateNow = new Date().getTime();
                     var html = "";
                     var oponentName = "";
@@ -150,6 +157,10 @@
                     var challengeDate = 0;
                     res.forEach(challenge => {
                       challengeDate = new Date(challenge.challenge_date).getTime();
+
+                      // Separating date in different consts (year, month and day).
+                      const [year, month, day] = challenge.challenge_date.split("T")[0].split("-")
+
                       if (challenge.user1_id == idUser) {
                         oponentName = challenge.user2_name;
                         oponentId = challenge.user2_id;
@@ -161,16 +172,16 @@
                         html += `
                         <tr id="challenge-${challenge.id}-oponent-${oponentId}">
                           <td id="oponent-name">${oponentName}</td>
-                          <td>${challenge.challenge_date.split("T")[0]}</td>
+                          <td>${day}-${month}-${year}</td>
                         `;
-
-                        if (challenge.winner_name) {
+                        
+                        if (challenge.winner_name) { // If the challenge has already a winner.
                             html += `<td>Ganador: ${challenge.winner_name}</td>`;
-                        } else if ((challengeDate <= dateNow) && !challenge.is_played){
+                        } else if ((challengeDate <= dateNow) && !challenge.is_played){ // If the challenge date has passed and the match is currently not played.
                             html += `<td><a class="play-button" href="#">Jugar</a></td>`;
-                        } else if (challenge.is_played && !challenge.winner_name) {
+                        } else if (challenge.is_played && !challenge.winner_name) { // If the match was played but the user didn't select a winner.
                           html += `<td><a class="select-winner-button" href="#">¿Quién Ganó?</a></td>`;
-                        } else if ((challengeDate > dateNow) && !challenge.is_played) {
+                        } else if ((challengeDate > dateNow) && !challenge.is_played) { // If the challenge date hasn't passed yet.
                           html += `<td>-</td>`;
                         }
 
@@ -194,7 +205,6 @@
                     winnerName: winnerName
                   },
                   success: function (res) {
-                      console.log(res);
                       if (res.success) {
                         window.location.reload();
                       }else {
