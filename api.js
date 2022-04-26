@@ -72,7 +72,7 @@ router.post('/users', async function(req, res, next) {
 
 // Get challenge by user.
 router.post('/challenges', async function(req, res, next) {
-  res.send(await db.query("select c.id, c.challenge_date, c.is_played, c.winner_name, u1.name as user1_name, u1.id as user1_id, u2.name as user2_name, u2.id as user2_id from ajedrez.challenges c inner join ajedrez.users u1 on u1.id = c.user_id1 inner join ajedrez.users u2 on u2.id = c.user_id2 where c.user_id1 = $1 order by c.challenge_date asc", [req.body.idUser]));
+  res.send(await db.query("select c.id, c.challenge_date, c.is_played, c.winner_name, u1.name as user1_name, u1.id as user1_id, u2.name as user2_name, u2.id as user2_id from ajedrez.challenges c inner join ajedrez.users u1 on u1.id = c.user_id1 inner join ajedrez.users u2 on u2.id = c.user_id2 where c.user_id1 = $1 OR c.user_id2 = $1 order by c.challenge_date asc", [req.body.idUser]));
 });
 
 // Challenge playing.
