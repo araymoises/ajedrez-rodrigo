@@ -47,13 +47,13 @@
         $( document ).ready(function() {
             const userType = localStorage.getItem('userType');
             if (userType != 'null') {
-                window.location.replace("http://localhost:3000/users");
+                window.location.replace("/users");
                 return;
             }
             $("#signup-confirm-button").on( "click", function() {
                 $.ajax({
                 type: "POST",
-                url: 'http://localhost:3000/api/signup',
+                url: '/api/signup',
                 data: {
                     name: $("#name").val(),
                     userType: 'normal',
@@ -62,7 +62,7 @@
                     password: $("#password").val(),
                 },
                 success: function (data) {
-                    window.location.href = "http://localhost:3000/login";
+                    window.location.href = "/login";
                 },
             });
             });

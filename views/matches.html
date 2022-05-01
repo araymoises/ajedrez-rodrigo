@@ -12,10 +12,10 @@
     <div style="background-color: #1d1d1d;">
         <ul class="nav" style="background-color: #1d1d1d; width: 1000px; place-content: center;">
             <li class="nav-item">
-              <a class="nav-link" href="http://localhost:3000/users" style="color: #f5f5f5">Usuarios</a>
+              <a class="nav-link" href="/users" style="color: #f5f5f5">Usuarios</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:3000/matches" style="color: #f5f5f5">Partidos</a>
+                <a class="nav-link" href="/matches" style="color: #f5f5f5">Partidos</a>
             </li>
             <li class="nav-item">
                 <a id="signout-button" class="nav-link" href="#" style="color: #f5f5f5">Salir</a>
@@ -84,7 +84,7 @@
 
             // If user is not logged, redirect to login.
             if (userType == 'null') {
-                window.location.replace("http://localhost:3000/login");
+                window.location.replace("/login");
                 return;
             }
 
@@ -97,7 +97,7 @@
                 localStorage.setItem('userType', null);
 
                 // Redirect to login.
-                window.location.href = "http://localhost:3000/login";
+                window.location.href = "/login";
             });
 
             // Choose the winner of the match.
@@ -126,7 +126,7 @@
 
               $.ajax({
                   type: "PUT",
-                  url: 'http://localhost:3000/api/challenge-playing',
+                  url: '/api/challenge-playing',
                   data: {
                     challengeId: challengeid
                   },
@@ -145,7 +145,7 @@
         async function getChallengesByUser(idUser) {
             await $.ajax({
                 type: "POST",
-                url: 'http://localhost:3000/api/challenges',
+                url: '/api/challenges',
                 data: {
                     idUser: idUser
                 },
@@ -199,7 +199,7 @@
         function saveWinner(modalChallengeId, winnerName) {
           $.ajax({
                   type: "PUT",
-                  url: 'http://localhost:3000/api/challenge-winner',
+                  url: '/api/challenge-winner',
                   data: {
                     challengeId: modalChallengeId,
                     winnerName: winnerName
